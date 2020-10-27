@@ -1,0 +1,204 @@
+<div class="offcanvas-menu-wrapper">
+    <div class="offcanvas__widget">
+        <a href="#"><i class="fa fa-cart-plus"></i></a>
+        <a href="#" class="search-switch"><i class="fa fa-search"></i></a>
+        <a href="#" class="primary-btn">Add Car</a>
+    </div>
+    <div class="offcanvas__logo">
+        <a href="./index.html"><img src="./img/logo.png" alt=""></a>
+    </div>
+    <div id="mobile-menu-wrap"></div>
+    <ul class="offcanvas__widget__add">
+        <li><i class="fa fa-clock-o"></i> 工作日: 08:00 am to 18:00 pm</li>
+        <li><i class="fa fa-envelope-o"></i> 联系我们.colorlib@gmail.com</li>
+    </ul>
+    <div class="offcanvas__phone__num">
+        <i class="fa fa-phone"></i>
+        <span>(+12) 345 678 910</span>
+    </div>
+    <div class="offcanvas__social">
+        <a href="#"><i class="fa fa-facebook"></i></a>
+        <a href="#"><i class="fa fa-twitter"></i></a>
+        <a href="#"><i class="fa fa-google"></i></a>
+        <a href="#"><i class="fa fa-instagram"></i></a>
+    </div>
+</div>
+
+
+<div style="width: 100%;height: 800px;background-color: #f57f17">
+    <table id="demo" lay-filter="test"></table>
+    <script src="./layui/layui.js"></script>
+    <script>
+        layui.use('table', function(){
+            var table = layui.table;
+            var pagecount;
+            page();
+            function page(){
+                $.ajax({
+                    type: "get", //指定提交的类型 get对应 doGet()方法，post--->doPost()犯法
+                    url: 'http://localhost:8080/register/CountServlet',    //传输地址的URL
+                    dataType:'json',
+                    success: function (data)
+                    {
+                        pagecount = data.count;
+                    },
+                    error:function (XMLHttpRequest, textStatus, errorThrown) {
+                        alert(typeof(errorThrown));
+                    }
+                });
+            }
+            console.log(pagecount);
+            table.render({
+                elem: '#test'
+                ,url:'http://localhost:8080/register/SelectAll'
+                ,method:"get"
+                ,toolbar: '#toolbarDemo' //开启头部工具栏，并为其绑定左侧模板
+                ,defaultToolbar: ['filter', 'exports', 'print', { //自定义头部工具栏右侧图标。如无需自定义，去除该参数即可
+                    title: '提示'
+                    ,layEvent: 'LAYTABLE_TIPS'
+                    ,icon: 'layui-icon-tips'
+                }]
+                ,title: '用户数据表'
+                ,cols: [[
+                    {type: 'checkbox', fixed: 'left'}
+                    ,{field:'id', title:'ID', width:80, fixed: 'left', unresize: true, sort: true}
+                    ,{field:'userName', title:'用户名', width:140, edit: 'text'}
+                    <!-- ,{field:'password', title:'密码', width:150, edit: 'text'}-->
+                    ,{field:'phoneNumber', title:'手机号', width:150, edit: 'text'}
+                    ,{field:'idCard', title:'身份证号', width:170,edit: 'text',}
+                    ,{field:'number', title:'房号', width:100,edit: 'text',}
+                    ,{field:'startTime', title:'预定时间',width:180}
+                    ,{field:'endTime', title:'预定结束时间', width:180, sort: true}
+                    ,{field:'flag', title:'房间状态', width:75}
+                    ,{fixed: 'right', title:'操作', toolbar: '#barDemo', width:170}
+                ]]
+                ,page: true
+                ,limit:10
+                ,response:{
+                    statusName: 'status' //规定数据状态的字段名称，默认：code
+                    ,dataName: 'rows' //规定数据列表的字段名称，默认：data
+                }
+                ,parseData: function(res){ //将原始数据解析成 table 组件所规定的数据
+                    return {
+                        "status": res[0].status,   //解析接口状态
+                        "message":res[1].message,  //解析提示文本
+                        "count": pagecount,       //解析数据长度
+                        "rows": res[3].rows.item  //解析数据列表
+                    };
+                }
+
+            });
+
+
+        })
+    </script>
+
+
+
+</div>
+
+package com.car.servlet;
+
+import mysql.MysqlUtil;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+
+public class CarServlet extends HttpServlet {
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        resp.setContentType("text/json;charset=utf-8");
+        resp.setCharacterEncoding("utf-8");
+        int page= Integer.parseInt(req.getParameter("page"))-1;
+        int limit= Integer.parseInt(req.getParameter("limit"));
+
+
+        String sqlString = "SELECT * from room  left JOIN user  on room.userid = user.id";
+        if(limit!=0) {
+            if(page!=0) {
+                sqlString += " limit "+limit*page+","+limit;
+            }else{
+                sqlString += " limit 0,"+limit;
+            }
+        }
+
+
+        //String[] ituser2 ={"id","userName","password","phoneNumber","idCard"};
+        String[] ituser2 = {"id","userName","phoneNumber","idCard","number","startTime","endTime","flag"};
+
+        String show = MysqlUtil.getJsonBySql(sqlString,ituser2);
+        //System.out.println(show);
+        //System.out.println(select);
+        resp.getWriter().append(show);
+        System.out.println("进入Servlet-->LSelectServlet");
+        //super.doGet(req, resp);
+
+
+
+
+
+        //super.doGet(req, resp);
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        //super.doPost(req, resp);
+    }
+
+}
+
+
+
+ password=$("#LAY-user-login-password").val();
+                    console.log(data[3].rows.item[0].length);
+                    if(data[3].rows.item[0].length==0)
+                    {
+                        alert("账户不存在");
+                    }else if(data[3].rows.item[0].Spassword==password)
+                        {
+                            var data={
+                                "account":$("#LAY-user-login-username").val(),
+                                "password":$("#LAY-user-login-password").val()
+                            }
+                            var url= "http://localhost:8081/back/session";
+                            $.ajax({
+                                type:"get",
+                                url:url,
+                                data:data,
+                                cache:false,
+                                async:false,
+                                success: function (data,textStatus, jqXHR)
+                                {
+                                    console.log("登录成功,并且记录在session中");
+                                },error:function (XMLHttpRequest, textStatus, errorThrown) {
+                                    alert(typeof(errorThrown));
+                                }
+                            });
+                            window.location.href="back.jsp";
+                        }else  if(data[3].rows.item[0].Spassword!=password)
+                    {
+                        alert("用户名或者密码错误");
+                        window.location.href="http://localhost:8081/back/";
+                    }
+
+                },
+                error:function (XMLHttpRequest, textStatus, errorThrown) {
+                    alert(typeof(errorThrown));
+                }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
